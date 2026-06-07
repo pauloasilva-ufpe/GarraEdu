@@ -63,14 +63,15 @@ export default function QuizScreen() {
       const selSet = new Set(sel);
       return correctSet.size === selSet.size && [...correctSet].every(v => selSet.has(v));
     }
-    if (q.type === 'matching') return true; // matching always marked correct in this simple version
+    if (q.type === 'matching') return sel === 'correct'; // handled by MatchingQuestion component
     return sel === q.correct;
   }
 
   function handleAnswer(option) {
     if (answered !== null) return;
     if (q.type === 'multiple_select') return; // handled by confirm button
-    const correct = isCorrect(q, option);
+    // matching: option is 'correct' or 'wrong' from MatchingQuestion component
+    const correct = q.type === 'matching' ? option === 'correct' : isCorrect(q, option);
     setSelected(option);
     setAnswered(correct);
     dispatch({ type: 'ANSWER_QUESTION', payload: { id: q.id, correct, selected: option } });
@@ -146,6 +147,7 @@ export default function QuizScreen() {
       </div>
 
       <QuestionCard
+        key={q.id}
         question={q}
         selected={q.type === 'multiple_select' ? multiSelected : selected}
         answered={answered}
