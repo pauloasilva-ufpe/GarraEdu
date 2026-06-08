@@ -83,11 +83,9 @@ app.post('/api/questions', async (req, res) => {
       : 'variados: múltipla escolha (4 opções), múltipla seleção (marque todas corretas) e associação (pares)';
 
     const levelInstructions = {
-      'Fácil': `Nível FÁCIL: perguntas de reconhecimento e identificação. Contextos diretos. O aluno reconhece ou lembra o conceito básico. Linguagem simples para ${grade}º ano.`,
-      'Médio': `Nível MÉDIO: perguntas de compreensão e aplicação. O aluno deve entender e aplicar o conceito, não apenas memorizar. Inclua contextos do cotidiano.`,
-      'Difícil': `Nível DIFÍCIL: perguntas de análise e raciocínio em múltiplas etapas.
-- MATEMÁTICA: crie situações-problema onde o aluno descobre sozinho qual operação ou expressão resolver. PROIBIDO dizer "divida por X", "multiplique Y por Z" ou indicar a operação. BOM: "A biblioteca tem 144 livros em 6 prateleiras iguais. Quantos livros cabem em 9 prateleiras?" (aluno infere divisão e multiplicação). RUIM: "Divida 144 por 6 e multiplique por 9".
-- OUTRAS DISCIPLINAS: exija inferência, síntese, análise de causa-efeito ou avaliação crítica.`
+      'Fácil': `Nível FÁCIL: perguntas de reconhecimento e identificação. Contextos diretos. O aluno reconhece ou lembra o conceito básico.`,
+      'Médio': `Nível MÉDIO: perguntas de compreensão e aplicação. O aluno deve entender e aplicar o conceito, não apenas memorizar.`,
+      'Difícil': `Nível DIFÍCIL: perguntas de análise e raciocínio em múltiplas etapas. Para MATEMÁTICA: crie situações-problema onde o aluno descobre sozinho qual operação resolver — NUNCA indique a operação diretamente. Para outras disciplinas: exija inferência, síntese ou análise crítica.`
     };
 
     const system = `Você é um pedagogo especialista em BNCC para o Ensino Fundamental brasileiro.
@@ -98,7 +96,7 @@ REGRAS OBRIGATÓRIAS:
 2. O enunciado deve DESAFIAR o aluno a pensar, não guiar a resposta.
 3. Os distratores (opções erradas) devem ser plausíveis, não obviamente incorretos.
 4. A pergunta deve exigir raciocínio, não apenas identificar palavras-chave.
-5. SEMPRE retorne JSON válido conforme o schema solicitado.
+5. SEMPRE retorne JSON válido. Use aspas simples dentro das strings, nunca aspas duplas.
 ${excludeIds.length > 0 ? `6. NUNCA repita as perguntas com ids: ${excludeIds.join(', ')}` : ''}`;
 
     const user = `Gere ${count} perguntas ${warmup ? 'de aquecimento (simples, reconhecimento)' : `de quiz — ${levelInstructions[level] || `nível ${level}`}`}
@@ -115,17 +113,17 @@ Retorne APENAS:
   {
     "id": "q1",
     "type": "multiple_choice",
-    "question": "texto da pergunta (sem revelar a resposta)",
+    "question": "texto da pergunta sem revelar a resposta",
     "options": ["A. opção", "B. opção", "C. opção", "D. opção"],
     "correct": "A. opção",
-    "explanation": "explicação didática revelando o raciocínio correto (máx 60 palavras)",
+    "explanation": "explicação curta do raciocínio correto em até 50 palavras",
     "bncc_skill": "EF0XCI01",
     "bncc_description": "descrição curta da habilidade BNCC"
   }
 ]
 \`\`\``;
 
-    const raw = await callClaude(system, user, 2500);
+    const raw = await callClaude(system, user, 4096);
     res.json(extractJSON(raw));
   } catch (err) {
     console.error('Error /api/questions:', err.message);
