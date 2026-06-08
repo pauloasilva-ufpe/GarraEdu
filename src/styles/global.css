@@ -133,6 +133,21 @@ html, body, #root {
 
 .btn-secondary:hover:not(:disabled) { filter: brightness(1.1); }
 
+.btn-confirm {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: var(--white);
+  box-shadow: 0 4px 16px rgba(22,163,74,0.45);
+  font-size: 1.05rem;
+  animation: pulseGreen 1.5s infinite;
+}
+
+.btn-confirm:hover:not(:disabled) { filter: brightness(1.1); }
+
+@keyframes pulseGreen {
+  0%, 100% { box-shadow: 0 4px 16px rgba(22,163,74,0.45); }
+  50%       { box-shadow: 0 4px 28px rgba(22,163,74,0.8); }
+}
+
 .btn-lg {
   padding: 16px 32px;
   font-size: 1.1rem;
