@@ -21,6 +21,7 @@ export default function QuizScreen() {
   const [loading, setLoading] = useState(state.quizQuestions.length === 0);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [pendingAnswer, setPendingAnswer] = useState(null);
   const [multiSelected, setMultiSelected] = useState([]);
   const [answered, setAnswered] = useState(null);
   const { grade, subject, level, content, uuid } = state;
@@ -67,12 +68,31 @@ export default function QuizScreen() {
     return sel === q.correct;
   }
 
+  function handleOptionSelect(option) {
+    if (answered !== null) return;
+    if (q.type === 'matching') {
+      // matching auto-confirma quando todos os pares são feitos
+      handleAnswer(option);
+      return;
+    }
+    if (q.type === 'multiple_select') return; // handled separately
+    // Para múltipla escolha: apenas seleciona, aguarda confirmação
+    setSelected(option);
+    setPendingAnswer(option);
+  }
+
+  function handleConfirmAnswer() {
+    if (pendingAnswer === null || answered !== null) return;
+    handleAnswer(pendingAnswer);
+  }
+
   function handleAnswer(option) {
     if (answered !== null) return;
     if (q.type === 'multiple_select') return; // handled by confirm button
     // matching: option is 'correct' or 'wrong' from MatchingQuestion component
     const correct = q.type === 'matching' ? option === 'correct' : isCorrect(q, option);
     setSelected(option);
+    setPendingAnswer(null);
     setAnswered(correct);
     dispatch({ type: 'ANSWER_QUESTION', payload: { id: q.id, correct, selected: option } });
     playSound(correct ? 'correct' : 'wrong');
@@ -107,6 +127,7 @@ export default function QuizScreen() {
     } else {
       dispatch({ type: 'NEXT_QUESTION' });
       setSelected(null);
+      setPendingAnswer(null);
       setMultiSelected([]);
       setAnswered(null);
     }
@@ -151,17 +172,25 @@ export default function QuizScreen() {
         question={q}
         selected={q.type === 'multiple_select' ? multiSelected : selected}
         answered={answered}
-        onAnswer={q.type === 'multiple_select' ? handleMultiToggle : handleAnswer}
+        onAnswer={q.type === 'multiple_select' ? handleMultiToggle : handleOptionSelect}
         isMulti={q.type === 'multiple_select'}
       />
 
+      {/* Botão confirmar para múltipla escolha */}
+      {q.type === 'multiple_choice' && pendingAnswer !== null && answered === null && (
+        <button className="btn btn-confirm" onClick={handleConfirmAnswer}>
+          ✅ Confirmar Resposta
+        </button>
+      )}
+
+      {/* Botão confirmar para múltipla seleção */}
       {q.type === 'multiple_select' && answered === null && (
         <button
-          className={`btn btn-secondary ${multiSelected.length === 0 ? 'btn-disabled' : ''}`}
+          className={`btn btn-confirm ${multiSelected.length === 0 ? 'btn-disabled' : ''}`}
           onClick={handleMultiConfirm}
           disabled={multiSelected.length === 0}
         >
-          ✅ Confirmar seleção
+          ✅ Confirmar Seleção
         </button>
       )}
 
